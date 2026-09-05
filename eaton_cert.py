@@ -26,8 +26,6 @@ but you should verify against the real DOM.
 REQUIREMENTS
 ------------
     pip install selenium
-    -or-
-    apt install python3-selenium
 
 You'll also need a matching browser driver (e.g. chromedriver) available on
 PATH, or use Selenium Manager (bundled with recent Selenium versions, which
@@ -97,8 +95,8 @@ USE_SHELL = True
 # sudo/as root to begin with.
 RUN_WITH_SUDO = False
 
-DEFAULT_WAIT = XX  # REPLACE ME seconds, for explicit waits on element visibility/clickability
-POST_SUBMIT_WAIT = XX  # REPLACE ME seconds, the required wait after clicking Submit
+DEFAULT_WAIT = 20  # seconds, for explicit waits on element visibility/clickability
+POST_SUBMIT_WAIT = 20  # seconds, the required wait after clicking Submit
 
 
 # --------------------------------------------------------------------------
@@ -197,24 +195,51 @@ def login(driver, base_url: str, username: str, password: str):
 
 
 def navigate_to_certificate_page(driver):
-    """Click Settings, then Certificate."""
+    """Click Settings (now a dropdown trigger), then Certificate inside it."""
     wait = WebDriverWait(driver, DEFAULT_WAIT)
 
     log.info("Clicking Settings...")
-    settings_el = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//*[self::a or self::button or self::span][contains(., 'Settings')]"))
-    )
-    settings_el.click()
+    try:
+        settings_el = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//*[self::a or self::button or self::span][contains(., 'Settings')]"))
+        )
+    except TimeoutException:
+        dump_debug_artifacts(driver, "settings_not_found")
+        raise
 
-    log.info("Clicking Certificate...")
-    certificate_el = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//*[self::a or self::button or self::span][contains(., 'Certificate')]"))
-    )
-    certificate_el.click()
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", settings_el)
+    try:
+        settings_el.click()
+    except ElementClickInterceptedException:
+        # Settings is now a dropdown trigger; an overlay/backdrop from the
+        # dropdown itself (or a leftover one) can intercept a plain click.
+        # A JS click bypasses that -- it fires the click event directly on
+        # the element rather than simulating a real pointer click at its
+        # on-screen coordinates, so an overlapping overlay can't catch it.
+        driver.execute_script("arguments[0].click();", settings_el)
+
+    log.info("Clicking Certificate (inside the Settings dropdown)...")
+    try:
+        certificate_el = wait.until(
+            EC.element_to_be_clickable((By.XPATH, "//*[self::a or self::button or self::span or self::li][contains(., 'Certificate')]"))
+        )
+    except TimeoutException:
+        dump_debug_artifacts(driver, "certificate_menu_item_not_found")
+        raise
+
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", certificate_el)
+    try:
+        certificate_el.click()
+    except ElementClickInterceptedException:
+        driver.execute_script("arguments[0].click();", certificate_el)
 
     # ADJUST ME: wait for something that confirms the Certificate page has loaded,
     # e.g. the table header containing "Used for"
-    wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Used for')]")))
+    try:
+        wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Used for')]")))
+    except TimeoutException:
+        dump_debug_artifacts(driver, "certificate_page_not_loaded")
+        raise
     log.info("On Certificate page.")
 
 
