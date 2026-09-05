@@ -6,7 +6,7 @@ WEB_PASSWORD = "PASSWORD_GOES_HERE"  #REPLACE - Password of the aforementioned u
 CHROMEDRIVER_PATH = "/usr/bin/chromedriver"    #Adjust as needed (or "" to auto-resolve)
 CHROME_BINARY_PATH = ""                        #Adjust as needed, e.g. "/usr/bin/chromium-browser"
 ```
-#Commands to run locally on this host once the CSR generation has been submitted.<br>#Each entry can be a plain shell string (run with shell=True, supports pipes/redirects) or a list of args (run without a shell, safer when arguments come from anywhere untrusted).
+Commands to run locally on this host once the CSR generation has been submitted.<br>Each entry can be a plain shell string (run with shell=True, supports pipes/redirects) or a list of args (run without a shell, safer when arguments come from anywhere untrusted).
 ```
 LOCAL_COMMANDS = [
     "sshpass -p [REPLACE_ME] ssh [USERNAME]@[URL] certificates local csr webserver > /tmp/cert-request-eaton.csr",
