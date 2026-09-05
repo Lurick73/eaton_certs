@@ -1,8 +1,11 @@
 This script allows for easier automatic certificate renewal of the Eaton M3 Network Card using a Python script and Selenium.
 
 Make sure to replace the following values as needed within the script:
+
 BASE_URL = "https://eaton-url.com"   # REPLACE - This is the base URL for the Network Card.
+
 WEB_USERNAME = "USERNAME_HERE"       # REPLACE - Username of a user with Certificate management privileges or admin privileges.
+
 WEB_PASSWORD = "PASSWORD_GOES_HERE"  # REPLACE - Password of the aforementioned user.
 
 CHROMEDRIVER_PATH = "/usr/bin/chromedriver"    # Adjust as needed (or "" to auto-resolve)
